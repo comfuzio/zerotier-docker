@@ -41,3 +41,7 @@ A variation on the container which implements a local network router. See:
 #### Source
 
 https://github.com/zyclonite/zerotier-docker
+
+#### Docker Compose in Synology NAS via Portainer
+
+Create a folder in your docker main directory in your Synology NAS Volume that you would like to use example */volume1/docker/zerotier-one* and create a new stack. Paste the code from docker-compose-synology.yml and deply stack 
