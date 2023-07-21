@@ -1,0 +1,13 @@
+version: '3'
+services:
+  zerotier:
+    image: zyclonite/zerotier
+    container_name: zerotier-one
+    devices:
+      - /dev/net/tun
+    network_mode: host
+    volumes:
+      - '/volume1/docker/zerotier-one:/volume1/docker/zerotier-one'
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
