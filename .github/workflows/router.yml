@@ -11,7 +11,7 @@ on:
     secrets:
       QUAY_PASSWORD:
         required: true
-      REGISTRY_PASSWORD:
+      DOCKERHUB_PASSWORD:
         required: true
 
 env:
@@ -37,7 +37,7 @@ jobs:
         ]
     steps:
       - name: Checkout zerotier-docker
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install qemu dependency
         run: |
@@ -62,9 +62,9 @@ jobs:
         run: podman save -o /tmp/image.tar ${{ env.IMAGE_NAME }}:${{ matrix.platform.tag }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: image-${{ matrix.platform.tag }}
+          name: image-${{ matrix.platform.tag }}-router
           path: /tmp/image.tar
 
   push:
@@ -74,21 +74,21 @@ jobs:
     environment: production
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Setup podman and buildah
         uses: zyclonite/setup-podman@v1
 
       - name: Import images
         run: |
-          podman load -i ./image-amd64/image.tar
-          podman load -i ./image-i386/image.tar
-          podman load -i ./image-arm64v8/image.tar
-          podman load -i ./image-arm32v7/image.tar
-          podman load -i ./image-arm32v6/image.tar
-          podman load -i ./image-riscv64/image.tar
-          podman load -i ./image-ppc64le/image.tar
-          podman load -i ./image-s390x/image.tar
+          podman load -i ./image-amd64-router/image.tar
+          podman load -i ./image-i386-router/image.tar
+          podman load -i ./image-arm64v8-router/image.tar
+          podman load -i ./image-arm32v7-router/image.tar
+          podman load -i ./image-arm32v6-router/image.tar
+          podman load -i ./image-riscv64-router/image.tar
+          podman load -i ./image-ppc64le-router/image.tar
+          podman load -i ./image-s390x-router/image.tar
 
       - name: Create multi-arch manifest
         run: |
@@ -105,15 +105,15 @@ jobs:
       - name: Push unstable images
         if: ${{ inputs.event == 'push' }}
         run: |
-          buildah manifest push --all --format v2s2 --creds zyclonite:${{ secrets.REGISTRY_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://docker.io/zyclonite/${{ env.IMAGE_NAME }}:router-main
+          buildah manifest push --all --format v2s2 --creds zyclonite:${{ secrets.DOCKERHUB_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://docker.io/zyclonite/${{ env.IMAGE_NAME }}:router-main
           buildah manifest push --all --creds zyclonite:${{ secrets.QUAY_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://quay.io/zyclonite/${{ env.IMAGE_NAME }}:router-main
           buildah manifest push --all --creds zyclonite:${{ secrets.GITHUB_TOKEN }} ${{ env.IMAGE_NAME }}:latest docker://ghcr.io/zyclonite/${{ env.IMAGE_NAME }}:router-main
 
       - name: Push stable images
         if: ${{ inputs.event == 'release' }}
         run: |
-          buildah manifest push --all --format v2s2 --creds zyclonite:${{ secrets.REGISTRY_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://docker.io/zyclonite/${{ env.IMAGE_NAME }}:router
-          buildah manifest push --all --format v2s2 --creds zyclonite:${{ secrets.REGISTRY_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://docker.io/zyclonite/${{ env.IMAGE_NAME }}:router-${{ github.event.release.tag_name }}
+          buildah manifest push --all --format v2s2 --creds zyclonite:${{ secrets.DOCKERHUB_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://docker.io/zyclonite/${{ env.IMAGE_NAME }}:router
+          buildah manifest push --all --format v2s2 --creds zyclonite:${{ secrets.DOCKERHUB_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://docker.io/zyclonite/${{ env.IMAGE_NAME }}:router-${{ github.event.release.tag_name }}
           buildah manifest push --all --creds zyclonite:${{ secrets.QUAY_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://quay.io/zyclonite/${{ env.IMAGE_NAME }}:router
           buildah manifest push --all --creds zyclonite:${{ secrets.QUAY_PASSWORD }} ${{ env.IMAGE_NAME }}:latest docker://quay.io/zyclonite/${{ env.IMAGE_NAME }}:router-${{ github.event.release.tag_name }}
           buildah manifest push --all --creds zyclonite:${{ secrets.GITHUB_TOKEN }} ${{ env.IMAGE_NAME }}:latest docker://ghcr.io/zyclonite/${{ env.IMAGE_NAME }}:router
