@@ -1,7 +1,7 @@
 ARG ALPINE_IMAGE=alpine
-ARG ALPINE_VERSION=3.22
-ARG ZT_COMMIT=185a3a2c76e6bf1b1c0415871f43076638eb007c
-ARG ZT_VERSION=1.14.2
+ARG ALPINE_VERSION=3.23
+ARG ZT_COMMIT=7b7d39becc4a775d33e8c0f673856fb91dea7f31
+ARG ZT_VERSION=1.16.0
 
 FROM ${ALPINE_IMAGE}:${ALPINE_VERSION} as builder
 
@@ -15,7 +15,7 @@ RUN apk add --update alpine-sdk linux-headers openssl-dev \
   && git -C src reset --quiet --hard ${ZT_COMMIT} \
   && cd /src \
   && git apply /patches/* \
-  && make -f make-linux.mk
+  && make -f make-linux.mk ZT_NONFREE=1
 
 FROM ${ALPINE_IMAGE}:${ALPINE_VERSION}
 
